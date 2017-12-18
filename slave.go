@@ -5,30 +5,43 @@ import (
 	"fmt"
 	"net"
 
+	"os"
+
 	"github.com/go-vgo/robotgo"
 )
 
-type Master struct {
-	MouseX int
-	MouseY int
+type (
+	Master struct {
+		MouseX int
+		MouseY int
 
-	PressedLeftButton  bool
-	PressedRightButton bool
-	//PressedKeys []int
-}
+		PressedLeftButton  bool
+		PressedRightButton bool
+		//PressedKeys []int
+	}
+
+	Slave struct {
+		Width  int
+		Height int
+	}
+)
 
 func main() {
-	fmt.Println("Slave listening")
+	m := os.Args[1]
 
-	ln, _ := net.Listen("tcp", "127.0.0.1:8081")
+	width, height := robotgo.GetScreenSize()
+	fmt.Println("W:", width, "H:", height)
 
-	conn, _ := ln.Accept()
+	conn, _ := net.Dial("tcp", m)
+	defer conn.Close()
+
 	decoder := gob.NewDecoder(conn)
 
 	master := &Master{}
 
 	for {
 		decoder.Decode(master)
-		robotgo.MoveMouse(master.MouseX, master.MouseY)
+		robotgo.Move(master.MouseX, master.MouseY)
 	}
+
 }
