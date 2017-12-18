@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/gob"
-	"fmt"
 	"net"
 
 	"os"
@@ -14,10 +13,6 @@ type (
 	Master struct {
 		MouseX int
 		MouseY int
-
-		PressedLeftButton  bool
-		PressedRightButton bool
-		//PressedKeys []int
 	}
 
 	Slave struct {
@@ -30,12 +25,15 @@ func main() {
 	m := os.Args[1]
 
 	width, height := robotgo.GetScreenSize()
-	fmt.Println("W:", width, "H:", height)
 
 	conn, _ := net.Dial("tcp", m)
 	defer conn.Close()
 
+	encoder := gob.NewEncoder(conn)
 	decoder := gob.NewDecoder(conn)
+
+	slave := Slave{width, height}
+	encoder.Encode(slave)
 
 	master := &Master{}
 

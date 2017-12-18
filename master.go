@@ -14,10 +14,11 @@ type (
 	Master struct {
 		MouseX int
 		MouseY int
+	}
 
-		PressedLeftButton  bool
-		PressedRightButton bool
-		//PressedKeys []int
+	Slave struct {
+		Width  int
+		Height int
 	}
 )
 
@@ -47,8 +48,13 @@ func mouse(master *Master) {
 }
 
 func slave(master *Master, conn net.Conn) {
-	fmt.Println("Adding Slave")
+	decoder := gob.NewDecoder(conn)
 	encoder := gob.NewEncoder(conn)
+
+	slave := &Slave{}
+
+	decoder.Decode(slave)
+	fmt.Println(slave)
 
 	for {
 		encoder.Encode(master)
