@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/gob"
 	"net"
-
 	"os"
 
 	"github.com/go-vgo/robotgo"
@@ -24,16 +23,12 @@ type (
 func main() {
 	m := os.Args[1]
 
-	width, height := robotgo.GetScreenSize()
+	//width, height := robotgo.GetScreenSize()
 
 	conn, _ := net.Dial("tcp", m)
 	defer conn.Close()
 
-	encoder := gob.NewEncoder(conn)
 	decoder := gob.NewDecoder(conn)
-
-	slave := Slave{width, height}
-	encoder.Encode(slave)
 
 	master := &Master{}
 

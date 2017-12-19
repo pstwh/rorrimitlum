@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-vgo/robotgo"
+	"rorrimitlum/xrandr"
 )
 
 type (
@@ -17,10 +18,13 @@ type (
 	}
 
 	Slave struct {
-		Width  int
-		Height int
+		X int
+		Y int
 	}
 )
+
+var slaves = 1
+var width, height = robotgo.GetScreenSize()
 
 func main() {
 	var master = Master{}
@@ -43,22 +47,33 @@ func main() {
 func mouse(master *Master) {
 	for {
 		master.MouseX, master.MouseY = robotgo.GetMousePos()
-		time.Sleep(1 * time.Microsecond)
+
+		fmt.Println(*master)
+		time.Sleep(10 * time.Microsecond)
 	}
 }
 
 func slave(master *Master, conn net.Conn) {
-	decoder := gob.NewDecoder(conn)
 	encoder := gob.NewEncoder(conn)
 
-	slave := &Slave{}
-
-	decoder.Decode(slave)
-	fmt.Println(slave)
+	monitor := xrandr.Connect()
+	//fmt.Println(monitor)
+	slaves++
+	slaveX := width * slaves
 
 	for {
-		encoder.Encode(master)
-		time.Sleep(10 * time.Millisecond)
+		if master.MouseX > slaveX+1366 {
+			aux := Master{MouseX: slaveX + 1366, MouseY: master.MouseY}
+			encoder.Encode(aux)
+		} else if master.MouseX < slaveX {
+			aux := Master{MouseX: slaveX, MouseY: master.MouseY}
+			encoder.Encode(aux)
+		} else {
+			encoder.Encode(master)
+		}
+		time.Sleep(1 * time.Millisecond)
 	}
+
+	xrandr.Disconnect(monitor)
 	fmt.Println("Deleting Slave")
 }
