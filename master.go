@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
+	"./xrandr"
 	"github.com/go-vgo/robotgo"
-	"rorrimitlum/xrandr"
 )
 
 type (
@@ -23,10 +23,11 @@ type (
 	}
 )
 
-var slaves = 1
-var width, height = robotgo.GetScreenSize()
+var slaves = 0
 
 func main() {
+	xrandr.DisconnectAll()
+
 	var master = Master{}
 	m := os.Args[1]
 
@@ -56,20 +57,25 @@ func mouse(master *Master) {
 func slave(master *Master, conn net.Conn) {
 	encoder := gob.NewEncoder(conn)
 
-	monitor := xrandr.Connect()
+	var width, _ = robotgo.GetScreenSize()
+
 	//fmt.Println(monitor)
 	slaves++
 	slaveX := width * slaves
 
+	monitor := xrandr.Connect()
+
 	for {
 		if master.MouseX > slaveX+1366 {
-			aux := Master{MouseX: slaveX + 1366, MouseY: master.MouseY}
+			aux := Master{MouseX: 1366, MouseY: master.MouseY}
 			encoder.Encode(aux)
 		} else if master.MouseX < slaveX {
-			aux := Master{MouseX: slaveX, MouseY: master.MouseY}
+			aux := Master{MouseX: 0, MouseY: master.MouseY}
 			encoder.Encode(aux)
 		} else {
-			encoder.Encode(master)
+			aux := Master{MouseX: master.MouseX - slaveX,
+				MouseY: master.MouseY}
+			encoder.Encode(aux)
 		}
 		time.Sleep(1 * time.Millisecond)
 	}

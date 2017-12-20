@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"encoding/gob"
 	"net"
 	"os"
@@ -34,6 +35,7 @@ func main() {
 
 	for {
 		decoder.Decode(master)
+		fmt.Println(master)
 		robotgo.Move(master.MouseX, master.MouseY)
 	}
 
